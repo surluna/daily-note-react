@@ -3,26 +3,16 @@ import { connectToDatabase } from "#/libs/mongodb";
 import { Note } from "#/libs/models/Note";
 import mongoose from "mongoose";
 
-// **处理 DELETE 请求**
 export async function DELETE(
   req: Request,
-  { params }: { params?: { id?: string } } // 确保 params 是可选的
+  { params }: { params: { id: string } }
 ) {
   try {
     await connectToDatabase();
-
-    const id = params?.id; // ✅ 确保 params 可访问
+    const id = params.id;
 
     console.log("🚀 Attempting to delete note with ID:", id);
 
-    if (!id) {
-      return NextResponse.json(
-        { message: "❌ Note ID is required" },
-        { status: 400 }
-      );
-    }
-
-    // **确保 `id` 是合法的 MongoDB `ObjectId`**
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { message: "❌ Invalid note ID" },
@@ -31,8 +21,6 @@ export async function DELETE(
     }
 
     const deletedNote = await Note.findByIdAndDelete(id);
-    console.log("🗑 Deleted note:", deletedNote);
-
     if (!deletedNote) {
       return NextResponse.json(
         { message: "❌ Note not found" },
@@ -49,21 +37,14 @@ export async function DELETE(
     );
   }
 }
-// **处理 PUT 请求（更新笔记）**
+
 export async function PUT(
   req: Request,
-  { params }: { params?: { id?: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     await connectToDatabase();
-
-    const id = params?.id; // ✅ 获取笔记 ID
-    if (!id) {
-      return NextResponse.json(
-        { message: "❌ Note ID is required" },
-        { status: 400 }
-      );
-    }
+    const id = params.id;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
@@ -72,8 +53,7 @@ export async function PUT(
       );
     }
 
-    const { content, date } = await req.json(); // ✅ 获取 `content` & `date`
-
+    const { content, date } = await req.json();
     if (!content || !date) {
       return NextResponse.json(
         { message: "❌ Missing required fields" },
@@ -84,7 +64,7 @@ export async function PUT(
     const updatedNote = await Note.findByIdAndUpdate(
       id,
       { content, date },
-      { new: true } // ✅ 返回更新后的笔记
+      { new: true }
     );
 
     if (!updatedNote) {
