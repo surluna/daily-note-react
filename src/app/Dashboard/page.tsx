@@ -31,7 +31,7 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div>
+    <div className="pb-16">
       <h1 className=" font-semibold text-center text-[#6f493d] text-4xl pb-16">
         Notes Dashboard
       </h1>

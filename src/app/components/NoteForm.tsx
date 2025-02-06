@@ -5,11 +5,11 @@ import { FormEvent, useEffect, useState } from "react";
 const NoteForm = () => {
   const [content, setContent] = useState("");
   const [notes, setNotes] = useState<{ date: string; note: string }[]>([]);
-  const now = new Date();
   const nowStr = new Date().toISOString().split("T")[0];
   const [date, setDate] = useState(nowStr);
 
   useEffect(() => {
+    const now = new Date();
     const tomorrow = new Date(now);
     tomorrow.setDate(now.getDate() + 1);
     tomorrow.setHours(0, 0, 0, 0);
