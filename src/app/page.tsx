@@ -15,6 +15,7 @@ export default function Home() {
           <NoteForm />
         </div>
       </section>
+      <Dashboard />
     </>
   );
 }

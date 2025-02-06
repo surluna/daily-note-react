@@ -58,11 +58,10 @@ const NoteForm = () => {
     console.log("Submitting form...");
 
     const isValid = await validateForm();
-    console.log("Validation result:", isValid);
     if (!isValid) return;
 
-    const newNote = { date, note: content };
-    console.log("Sending data:", newNote);
+    const newNote = { date, content }; // ✅ 确保字段匹配后端 `{ date, content }`
+    console.log("📌 Sending data:", newNote);
 
     try {
       const res = await fetch("/api/notes", {
@@ -71,12 +70,13 @@ const NoteForm = () => {
         body: JSON.stringify(newNote),
       });
 
+      const responseData = await res.json(); // ✅ 解析 JSON
       if (res.ok) {
         alert("✅ Note saved successfully!");
         setContent("");
+        setNotes((prevNotes) => [responseData.note, ...prevNotes]);
       } else {
-        const errorData = await res.json();
-        console.error("❌ API Error:", errorData);
+        console.error("❌ API Error:", responseData);
       }
     } catch (error) {
       console.error("❌ Fetch failed:", error);
