@@ -5,17 +5,17 @@ import mongoose from "mongoose";
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params?: { id?: string } }
 ) {
   try {
     await connectToDatabase();
-    const id = params.id;
+    const id = params?.id;
 
     console.log("🚀 Attempting to delete note with ID:", id);
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
-        { message: "❌ Invalid note ID" },
+        { message: "❌ Invalid or missing note ID" },
         { status: 400 }
       );
     }
@@ -40,15 +40,15 @@ export async function DELETE(
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params?: { id?: string } }
 ) {
   try {
     await connectToDatabase();
-    const id = params.id;
+    const id = params?.id;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
-        { message: "❌ Invalid note ID" },
+        { message: "❌ Invalid or missing note ID" },
         { status: 400 }
       );
     }
