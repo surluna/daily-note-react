@@ -50,11 +50,10 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onNotesChange }) => {
     }
   };
 
-  // **更新笔记**
   const handleUpdate = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/notes?id=${note._id}`, {
+      const res = await fetch(`/api/notes/${note._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -63,11 +62,12 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onNotesChange }) => {
         }),
       });
 
+      const responseData = await res.json();
       if (!res.ok) {
-        throw new Error("Failed to update note");
+        throw new Error(responseData.message || "Failed to update note");
       }
 
-      console.log("✅ Note updated successfully");
+      console.log("✅ Note updated successfully:", responseData.note);
       setIsEditing(false);
       onNotesChange && onNotesChange();
     } catch (error) {

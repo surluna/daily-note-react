@@ -49,3 +49,60 @@ export async function DELETE(
     );
   }
 }
+// **处理 PUT 请求（更新笔记）**
+export async function PUT(
+  req: Request,
+  { params }: { params?: { id?: string } }
+) {
+  try {
+    await connectToDatabase();
+
+    const id = params?.id; // ✅ 获取笔记 ID
+    if (!id) {
+      return NextResponse.json(
+        { message: "❌ Note ID is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { message: "❌ Invalid note ID" },
+        { status: 400 }
+      );
+    }
+
+    const { content, date } = await req.json(); // ✅ 获取 `content` & `date`
+
+    if (!content || !date) {
+      return NextResponse.json(
+        { message: "❌ Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    const updatedNote = await Note.findByIdAndUpdate(
+      id,
+      { content, date },
+      { new: true } // ✅ 返回更新后的笔记
+    );
+
+    if (!updatedNote) {
+      return NextResponse.json(
+        { message: "❌ Note not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      message: "✅ Note updated successfully",
+      note: { ...updatedNote.toObject(), _id: updatedNote._id.toString() },
+    });
+  } catch (error) {
+    console.error("🔥 Server error while updating note:", error);
+    return NextResponse.json(
+      { message: "❌ Server error", error },
+      { status: 500 }
+    );
+  }
+}
