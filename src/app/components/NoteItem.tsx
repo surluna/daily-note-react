@@ -14,7 +14,7 @@ interface Note {
 
 interface NoteItemProps {
   note: Note;
-  onNotesChange?: () => void;
+  onNotesChange?: () => void; // 触发父组件刷新
 }
 
 const NoteItem: React.FC<NoteItemProps> = ({ note, onNotesChange }) => {
@@ -22,6 +22,48 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onNotesChange }) => {
   const [editContent, setEditContent] = useState(note.content);
   const [editDate, setEditDate] = useState(note.date);
   const [loading, setLoading] = useState(false);
+
+  // **更新笔记**
+  const handleUpdate = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/notes/${note._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: editDate, content: editContent }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setIsEditing(false);
+        onNotesChange?.(); // 触发父组件刷新
+      } else {
+        console.error("❌ 更新失败:", data.message);
+      }
+    } catch (error) {
+      console.error("🔥 更新请求错误:", error);
+    }
+    setLoading(false);
+  };
+
+  // **删除笔记**
+  const handleDelete = async () => {
+    if (!confirm("确定要删除这条笔记吗？")) return;
+
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/notes/${note._id}`, { method: "DELETE" });
+
+      if (res.ok) {
+        onNotesChange?.(); // 触发父组件刷新
+      } else {
+        console.error("❌ 删除失败");
+      }
+    } catch (error) {
+      console.error("🔥 删除请求错误:", error);
+    }
+    setLoading(false);
+  };
 
   return (
     <div
@@ -67,7 +109,7 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onNotesChange }) => {
               <EditOutlined className="text-[#402e32] text-xl" />
             </button>
             <button
-              // onClick={handleDelete}
+              onClick={handleDelete}
               disabled={loading}
               className="p-2 bg-red-500 rounded-full hover:bg-opacity-80 transition"
             >
@@ -77,7 +119,7 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onNotesChange }) => {
         ) : (
           <>
             <button
-              // onClick={handleUpdate}
+              onClick={handleUpdate}
               disabled={loading}
               className="p-2 bg-green-500 rounded-full hover:bg-opacity-80 transition"
             >
