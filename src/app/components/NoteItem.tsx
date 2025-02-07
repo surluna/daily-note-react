@@ -23,61 +23,6 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onNotesChange }) => {
   const [editDate, setEditDate] = useState(note.date);
   const [loading, setLoading] = useState(false);
 
-  // **删除笔记**
-  const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this note?")) return;
-
-    setLoading(true);
-    try {
-      console.log(`📌 Sending DELETE request to: /api/notes/${note._id}`);
-
-      const res = await fetch(`/api/notes/${note._id}`, {
-        method: "DELETE",
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to delete note");
-      }
-
-      console.log("✅ Note deleted successfully");
-      onNotesChange?.();
-    } catch (error) {
-      console.error("❌ Error deleting note:", error);
-      alert("Failed to delete note");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUpdate = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/notes/${note._id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          content: editContent,
-          date: editDate,
-        }),
-      });
-
-      const responseData = await res.json();
-      if (!res.ok) {
-        throw new Error(responseData.message || "Failed to update note");
-      }
-
-      console.log("✅ Note updated successfully:", responseData.note);
-      setIsEditing(false);
-      onNotesChange && onNotesChange();
-    } catch (error) {
-      console.error("❌ Error updating note:", error);
-      alert(error instanceof Error ? error.message : "Failed to update note");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div
       id={`note-${note._id}`}
@@ -122,7 +67,7 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onNotesChange }) => {
               <EditOutlined className="text-[#402e32] text-xl" />
             </button>
             <button
-              onClick={handleDelete}
+              // onClick={handleDelete}
               disabled={loading}
               className="p-2 bg-red-500 rounded-full hover:bg-opacity-80 transition"
             >
@@ -132,7 +77,7 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onNotesChange }) => {
         ) : (
           <>
             <button
-              onClick={handleUpdate}
+              // onClick={handleUpdate}
               disabled={loading}
               className="p-2 bg-green-500 rounded-full hover:bg-opacity-80 transition"
             >
