@@ -1,63 +1,116 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "#/libs/mongodb";
 import { Note } from "#/libs/models/Note";
+import mongoose from "mongoose";
 
-// **更新笔记**
+// Update a note
 export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  await connectToDatabase();
-  const { id } = params;
-  const { date, content } = await req.json();
-
-  if (!date || !content) {
-    return NextResponse.json({ message: "❌ 缺少必填字段" }, { status: 400 });
-  }
-
   try {
+    await connectToDatabase();
+    
+    // Await the entire params object
+    const { id } = await params;
+
+    // Validate ID format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { message: "❌ Invalid note ID format" },
+        { status: 400 }
+      );
+    }
+
+    // Get update data from request body
+    const { date, content } = await request.json();
+    
+    if (!date || !content) {
+      return NextResponse.json(
+        { message: "❌ Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Check if another note exists with the same date (excluding current note)
+    const existingNote = await Note.findOne({ 
+      date, 
+      _id: { $ne: id } 
+    });
+    
+    if (existingNote) {
+      return NextResponse.json(
+        { message: "❌ A note for this date already exists" },
+        { status: 400 }
+      );
+    }
+
+    // Find and update the note
     const updatedNote = await Note.findByIdAndUpdate(
       id,
       { date, content },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     if (!updatedNote) {
-      return NextResponse.json({ message: "❌ 笔记未找到" }, { status: 404 });
+      return NextResponse.json(
+        { message: "❌ Note not found" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({
-      message: "✅ 笔记更新成功",
-      note: { ...updatedNote.toObject(), _id: updatedNote._id.toString() },
+      message: "✅ Note updated successfully",
+      note: { ...updatedNote.toObject(), _id: updatedNote._id.toString() }
     });
+
   } catch (error) {
-    console.error("🔥 更新错误:", error);
+    console.error("🔥 PUT Error:", error);
     return NextResponse.json(
-      { message: "❌ 服务器错误", error },
+      { message: "❌ Server error", error },
       { status: 500 }
     );
   }
 }
 
-// **删除笔记**
+// Delete a note
 export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  await connectToDatabase();
-  const { id } = params;
-
   try {
-    const deletedNote = await Note.findByIdAndDelete(id);
-    if (!deletedNote) {
-      return NextResponse.json({ message: "❌ 笔记未找到" }, { status: 404 });
+    await connectToDatabase();
+    
+    // Await the entire params object
+    const { id } = await params;
+
+    // Validate ID format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { message: "❌ Invalid note ID format" },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json({ message: "✅ 笔记删除成功" });
+    // Find and delete the note
+    const deletedNote = await Note.findByIdAndDelete(id);
+
+    if (!deletedNote) {
+      return NextResponse.json(
+        { message: "❌ Note not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      message: "✅ Note deleted successfully",
+      note: { ...deletedNote.toObject(), _id: deletedNote._id.toString() }
+    });
+
   } catch (error) {
-    console.error("🔥 删除错误:", error);
+    console.error("🔥 DELETE Error:", error);
     return NextResponse.json(
-      { message: "❌ 服务器错误", error },
+      { message: "❌ Server error", error },
       { status: 500 }
     );
   }
